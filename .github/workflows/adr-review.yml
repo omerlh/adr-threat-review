@@ -5,10 +5,12 @@ on:
     paths:
       - "docs/adr/**"
 
-# Read-only token that can only comment on the PR. No other secrets are used.
+# Read-only token that can only comment on the PR. No static API key: the job
+# trades its GitHub OIDC token for a short-lived Claude token (id-token: write).
 permissions:
   contents: read
   pull-requests: write
+  id-token: write
 
 jobs:
   review:
