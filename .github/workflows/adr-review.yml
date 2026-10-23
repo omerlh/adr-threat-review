@@ -1,0 +1,33 @@
+name: ADR threat review
+
+on:
+  pull_request:
+    paths:
+      - "docs/adr/**"
+
+# Read-only token that can only comment on the PR. No other secrets are used.
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    # Fork PRs get no secrets with the pull_request event, so they skip the review.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: anthropics/claude-code-action@12dd8d74c712f5f3669365b2369b558c495b1104 # v1.0.238
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ github.event.pull_request.number }}
+            Follow the instructions in .github/adr-review-prompt.md.
+          claude_args: >-
+            --allowedTools "Read,Glob,Grep,Bash(gh pr diff:*),Bash(gh pr comment:*)"
